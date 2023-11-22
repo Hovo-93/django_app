@@ -1,6 +1,6 @@
 from django.core.validators import EmailValidator
 from django.db import models
-
+from users.tasks import send_notification
 
 # Create your models here.
 class UserProfile(models.Model):
@@ -10,3 +10,10 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.username
+
+    def save(self, *args, **kwargs):
+        creating = not bool(self.id)
+        result = super().save(*args, **kwargs)
+        if creating:
+            send_notification.delay(self.email)
+        return result
