@@ -56,4 +56,5 @@ POST http://localhost:8000/register/
   "email": "Емайл"
 }
 ```
-
+### Установлен flower с помощью которого можно посмтреть celery workers
+http://localhost:5555
