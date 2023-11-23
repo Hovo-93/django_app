@@ -13,7 +13,7 @@
 venv
 # Generated files
 .idea/**/contentModel.xml
-
+db.sqlite3
 # Sensitive or high-churn files
 .idea/**/dataSources/
 .idea/**/dataSources.ids
