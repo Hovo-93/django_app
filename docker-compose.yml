@@ -3,53 +3,54 @@ services:
     build:
       context: .  #path the location where has dockerfile
     ports:
-      - "8000:8000"
-    volumes:
-      - ./service:/service #chotbi ne rebuldit ete unenqw python code poxac rebuild chenqn dockeri mej local papken miacrinq dockerin
-    environment:
-      - DB_HOST=database
-      - DB_NAME=dbname
-      - DB_USER=dbuser
-      - DB_PASS=pass
+      - "8080:8000"
+    env_file:
+      - .env
     command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000"
+      sh -c "
+             python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8080"
     depends_on:
-      - database
-  database:
-    image: postgres:14.6-alpine
-    environment:
-      - POSTGRES_DB=dbname
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=pass
+      - db
+  db:
+    build: ./MySQL
+    ports:
+      - "3306:3306"
+    depends_on:
+      - redis
+
+
   redis:
-    image: redis:7.0.5-alpine
+    image: redis:6.2
     hostname: redis
+
+
   worker:
     build:
       context: .
-    hostname: worker  #eto imya vnutri dokera
+    hostname: worker
     entrypoint: celery
-    command: -A celery_app.app worker --loglevel=info  #for production warning or error
-    volumes:
-      - ./service:/service
-    environment:
-      - POSTGRES_DB=dbname
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=pass
+    command: -A django_app worker --loglevel=info  #for production warning or error
+
     links:
       - redis
     depends_on:
       - redis
-      - database
+      - db
   flower:
     build:
       context: .
     hostname: flower
     entrypoint: celery
-    command: -A celery_app.app flower
-    volumes:
-      - ./service:/service
+    command: -A django_app flower
     links:
       - redis
     ports:
       - "5555:5555"
+  nginx:
+    build: ./nginx
+    ports:
+      - "8000:80"
+    depends_on:
+      - web-app
