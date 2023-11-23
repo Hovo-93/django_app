@@ -50,13 +50,10 @@ DELETE http://localhost:8000/book/id/
 
 ### 6.Регистрация нового пользователя
 POST http://localhost:8000/register/
-#BODY(json)
+```json
 {
-    {
-    
-    "username":"Имя",
-    "email":"Емайл"
-      
-    }
+  "username": "Имя",
+  "email": "Емайл"
 }
+```
 
