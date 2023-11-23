@@ -1,0 +1,56 @@
+services:
+  web-app:
+    build:
+      context: .  #path the location where has dockerfile
+    ports:
+      - "8080:8000"
+    env_file:
+      - .env
+    command: >
+      sh -c "
+             python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8080"
+    depends_on:
+      - db
+  db:
+    build: ./MySQL
+    ports:
+      - "3306:3306"
+    depends_on:
+      - redis
+
+
+  redis:
+    image: redis:6.2
+    hostname: redis
+
+
+  worker:
+    build:
+      context: .
+    hostname: worker
+    entrypoint: celery
+    command: -A django_app worker --loglevel=info  #for production warning or error
+
+    links:
+      - redis
+    depends_on:
+      - redis
+      - db
+  flower:
+    build:
+      context: .
+    hostname: flower
+    entrypoint: celery
+    command: -A django_app flower
+    links:
+      - redis
+    ports:
+      - "5555:5555"
+  nginx:
+    build: ./nginx
+    ports:
+      - "8000:80"
+    depends_on:
+      - web-app
